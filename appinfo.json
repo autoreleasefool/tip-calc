@@ -1,8 +1,8 @@
 {
   "uuid": "81b68ef5-b1c9-4c03-9072-eedcbee972bf",
-  "shortName": "tip-calc",
-  "longName": "tip-calc",
-  "companyName": "MakeAwesomeHappen",
+  "shortName": "TipCalc",
+  "longName": "TipCalc",
+  "companyName": "Joseph Roque",
   "versionLabel": "1.0",
   "sdkVersion": "3",
   "targetPlatforms": ["aplite", "basalt"],
