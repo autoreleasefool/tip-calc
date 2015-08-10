@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include "calc_menu.h"
+#include "utils.h"
 
 // Service identifiers
 #define SERVICE_GREAT_ID 0
@@ -38,13 +39,6 @@ static TextLayer *s_textlayer_total;
 
 // Control values
 static int s_current_input_selection = 0;
-
-// Input values
-static int s_subtotal_cents = 2000;
-static int s_service_selection = 1;
-static int s_tip_pct_great = 23;
-static int s_tip_pct_avg = 18;
-static int s_tip_pct_poor = 15;
 
 // Output values
 static char[30] s_subtotal_text;
@@ -150,23 +144,23 @@ static void update_input_selection(void) {
 
 static void update_calc_text(void) {
   // Formatting subtotal
-  int subtotal_dollars = s_subtotal_cents / 100;
-  int subtotal_cents = s_subtotal_cents % 100;
+  int subtotal_dollars = g_subtotal_cents / 100;
+  int subtotal_cents = g_subtotal_cents % 100;
   snprintf(s_subtotal_text, sizeof(s_subtotal_text), "$%d.%d", subtotal_dollars, subtotal_cents);
 
   // Formatting service
   int tip_pct = 0;
-  switch (s_service_selection) {
+  switch (g_service_selection) {
     case SERVICE_GREAT_ID:
-      tip_pct = s_tip_pct_great;
+      tip_pct = g_tip_pct_great;
       s_service_text = SERVICE_GREAT_VALUE;
       break;
     case SERVICE_AVG_ID:
-      tip_pct = s_tip_pct_avg;
+      tip_pct = g_tip_pct_avg;
       s_service_text = SERVICE_AVG_VALUE;
       break;
     case SERVICE_POOR_ID:
-      tip_pct = s_tip_pct_poor;
+      tip_pct = g_tip_pct_poor;
       s_service_text = SERVICE_POOR_VALUE;
       break;
   }
@@ -175,13 +169,13 @@ static void update_calc_text(void) {
   snprintf(s_tip_pct_text, sizeof(s_tip_pct_text), "%d%%", tip_pct);
 
   // Formating tip dollar value
-  int tip_amt_raw = (int) (s_subtotal_cents * (1 + tip_pct / 100.0f));
+  int tip_amt_raw = (int) (g_subtotal_cents * (1 + tip_pct / 100.0f));
   int tip_amt_dollars = tip_amt_row / 100;
   int tip_amt_cents = tip_amt_row % 100;
   snprintf(s_tip_amt_text, sizeof(s_tip_amt_text), "$%d.%d", tip_amt_dollars, tip_amt_cents);
 
   // Formatting total
-  int total_raw = tip_amt_raw + s_subtotal_cents;
+  int total_raw = tip_amt_raw + g_subtotal_cents;
   int total_dollars = total_raw / 100;
   int total_cents = total_raw % 100;
   snprintf(s_total_text, sizeof(s_total_text), "$%d.%d", total_dollars, total_cents);
@@ -196,26 +190,26 @@ static void update_calc_text(void) {
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
   switch (s_current_input_selection) {
     case INPUT_SUBTOTAL_DOLLARS:
-      s_subtotal_cents += 100;
+      g_subtotal_cents += 100;
       break;
     case INPUT_SUBTOTAL_CENTS:
-      s_subtotal_cents++;
+      g_subtotal_cents++;
       break;
     case INPUT_SERVICE:
-      s_service_selection++;
-      if (s_service_selection == TOTAL_SERVICE_SELECTIONS)
-        s_service_selection = 0;
+      g_service_selection++;
+      if (g_service_selection == TOTAL_SERVICE_SELECTIONS)
+        g_service_selection = 0;
       break;
     case INPUT_TIP:
-      switch (s_service_selection) {
+      switch (g_service_selection) {
         case SERVICE_GREAT_ID:
-          s_tip_pct_great++;
+          g_tip_pct_great++;
           break;
         case SERVICE_AVG_ID:
-          s_tip_pct_avg++;
+          g_tip_pct_avg++;
           break;
         case SERVICE_POOR_ID:
-          s_tip_pct_poor++;
+          g_tip_pct_poor++;
       }
       break;
   }
@@ -226,36 +220,36 @@ static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
   switch (s_current_input_selection) {
     case INPUT_SUBTOTAL_DOLLARS:
-      s_subtotal_cents -= 100;
-      if (s_subtotal_cents < 0)
-        s_subtotal_cents = 0;
+      g_subtotal_cents -= 100;
+      if (g_subtotal_cents < 0)
+        g_subtotal_cents = 0;
       break;
     case INPUT_SUBTOTAL_CENTS:
-      s_subtotal_cents--;
-      if (s_subtotal_cents < 0)
-        s_subtotal_cents = 0;
+      g_subtotal_cents--;
+      if (g_subtotal_cents < 0)
+        g_subtotal_cents = 0;
       break;
     case INPUT_SERVICE:
-      s_service_selection--;
-      if (s_service_selection < 0)
-        s_service_selection = TOTAL_SERVICE_SELECTIONS - 1;
+      g_service_selection--;
+      if (g_service_selection < 0)
+        g_service_selection = TOTAL_SERVICE_SELECTIONS - 1;
       break;
     case INPUT_TIP:
-    switch (s_service_selection) {
+    switch (g_service_selection) {
       case SERVICE_GREAT_ID:
-        s_tip_pct_great--;
-        if (s_tip_pct_great < 0)
-          s_tip_pct_great = 0;
+        g_tip_pct_great--;
+        if (g_tip_pct_great < 0)
+          g_tip_pct_great = 0;
         break;
       case SERVICE_AVG_ID:
-        s_tip_pct_avg--;
-        if (s_tip_pct_avg < 0)
-          s_tip_pct_avg = 0;
+        g_tip_pct_avg--;
+        if (g_tip_pct_avg < 0)
+          g_tip_pct_avg = 0;
         break;
       case SERVICE_POOR_ID:
-        s_tip_pct_poor--;
-        if (s_tip_pct_poor < 0)
-          s_tip_pct_poor = 0;
+        g_tip_pct_poor--;
+        if (g_tip_pct_poor < 0)
+          g_tip_pct_poor = 0;
     }
       break;
   }
