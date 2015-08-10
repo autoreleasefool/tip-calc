@@ -23,6 +23,10 @@ static Window *s_main_window;
 static GFont s_res_gothic_24_bold;
 static GFont s_res_gothic_24;
 
+// Selection indicators
+static InverterLayer *s_inverter_current_input;
+static InverterLayer *s_inverter_subtotal_input;
+
 // Labels
 static TextLayer *s_textlayer_label_subtotal;
 static TextLayer *s_textlayer_label_service;
@@ -110,6 +114,12 @@ static void initialise_ui(void) {
   text_layer_set_text_alignment(s_textlayer_total, GTextAlignmentRight);
   text_layer_set_font(s_textlayer_total, s_res_gothic_24_bold);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_total);
+
+  // Initialising selection indicators
+  s_inverter_current_input = invert_layer_create(GRect(1, 1, 60, 28));
+  layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_current_input);
+  s_inverter_subtotal_input = invert_layer_create(GRect(70, 1, 70, 28));
+  layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_subtotal_input);
 }
 
 static void destroy_ui() {
@@ -128,10 +138,14 @@ static void destroy_ui() {
   text_layer_destroy(s_textlayer_tip_pct);
   text_layer_destroy(s_textlayer_tip_amt);
   text_layer_destroy(s_textlayer_total);
+
+  // Destroying selection indicators
+  invert_layer_destroy(s_inverter_current_input);
+  invert_layer_destroy(s_inverter_subtotal_input);
 }
 
 static void main_window_load(Window *window) {
-
+  update_input_selection();
 }
 
 static void main_window_unload(Window *window) {
@@ -139,7 +153,26 @@ static void main_window_unload(Window *window) {
 }
 
 static void update_input_selection(void) {
-
+  switch (s_current_input_selection) {
+    case INPUT_SUBTOTAL_DOLLARS:
+      layer_set_bounds((Layer *)s_inverter_current_input, GRect(1, 1, 60, 28));
+      layer_set_bounds((Layer *)s_inverter_subtotal_input, GRect(70, 1, 43, 28));
+      layer_set_hidden((Layer *)s_inverter_subtotal_input, false);
+      break;
+    case INPUT_SUBTOTAL_CENTS:
+      layer_set_bounds((Layer *)s_inverter_current_input, GRect(1, 1, 60, 28));
+      layer_set_bounds((Layer *)s_inverter_subtotal_input, GRect(123, 1, 21, 28));
+      layer_set_hidden((Layer *)s_inverter_subtotal_input, false);
+      break;
+    case INPUT_SERVICE:
+      layer_set_bounds((Layer *)s_inverter_current_input, GRect(1, 29, 60, 28));
+      layer_set_hidden((Layer *)s_inverter_subtotal_input, true);
+      break;
+    case INPUT_TIP:
+      layer_set_bounds((Layer *)s_inverter_current_input, GRect(1, 57, 60, 28));
+      layer_set_hidden((Layer *)s_inverter_subtotal_input, true);
+      break;
+  }
 }
 
 static void update_calc_text(void) {
