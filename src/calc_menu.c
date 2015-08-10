@@ -51,8 +51,13 @@ static char[30] s_tip_pct_text;
 static char[30] s_tip_amt_text;
 static char[30] s_total_text;
 
+static void tick_handler(struct tm *tick_time, TimeUnits units_changed);
+
 static void initialise_ui(void) {
   s_main_window = window_create();
+
+  // Register for tick updates
+  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
 
   // Initialising fonts
   s_res_gothic_24_bold = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
@@ -296,6 +301,14 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
     s_current_input_selection = 0;
 
   update_input_selection;
+}
+
+static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
+  if (s_current_input_selection == INPUT_SUBTOTAL_CENTS
+      || s_current_input_selection == INPUT_SUBTOTAL_DOLLARS) {
+    layer_set_hidden((Layer *)s_inverter_subtotal_input,
+        !layer_get_hidden((Layer *)s_inverter_subtotal_input));
+  }
 }
 
 static void click_config_provider(void *context) {
