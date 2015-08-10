@@ -45,13 +45,14 @@ static TextLayer *s_textlayer_total;
 static int s_current_input_selection = 0;
 
 // Output values
-static char[30] s_subtotal_text;
-static char[30] s_service_text;
-static char[30] s_tip_pct_text;
-static char[30] s_tip_amt_text;
-static char[30] s_total_text;
+static char s_subtotal_text[30] = "";
+static char s_service_text[30] = "";
+static char s_tip_pct_text[30] = "";
+static char s_tip_amt_text[30] = "";
+static char s_total_text[30] = "";
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed);
+static void update_input_selection(void);
 
 static void initialise_ui(void) {
   s_main_window = window_create();
@@ -121,9 +122,9 @@ static void initialise_ui(void) {
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_total);
 
   // Initialising selection indicators
-  s_inverter_current_input = invert_layer_create(GRect(1, 1, 60, 28));
+  s_inverter_current_input = inverter_layer_create(GRect(1, 1, 60, 28));
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_current_input);
-  s_inverter_subtotal_input = invert_layer_create(GRect(70, 1, 70, 28));
+  s_inverter_subtotal_input = inverter_layer_create(GRect(70, 1, 70, 28));
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_subtotal_input);
 }
 
@@ -145,8 +146,8 @@ static void destroy_ui() {
   text_layer_destroy(s_textlayer_total);
 
   // Destroying selection indicators
-  invert_layer_destroy(s_inverter_current_input);
-  invert_layer_destroy(s_inverter_subtotal_input);
+  inverter_layer_destroy(s_inverter_current_input);
+  inverter_layer_destroy(s_inverter_subtotal_input);
 }
 
 static void main_window_load(Window *window) {
@@ -191,15 +192,15 @@ static void update_calc_text(void) {
   switch (g_service_selection) {
     case SERVICE_GREAT_ID:
       tip_pct = g_tip_pct_great;
-      s_service_text = SERVICE_GREAT_VALUE;
+      snprintf(s_service_text, sizeof(s_service_text), "%s", SERVICE_GREAT_VALUE);
       break;
     case SERVICE_AVG_ID:
       tip_pct = g_tip_pct_avg;
-      s_service_text = SERVICE_AVG_VALUE;
+      snprintf(s_service_text, sizeof(s_service_text), "%s", SERVICE_AVG_VALUE);
       break;
     case SERVICE_POOR_ID:
       tip_pct = g_tip_pct_poor;
-      s_service_text = SERVICE_POOR_VALUE;
+      snprintf(s_service_text, sizeof(s_service_text), "%s", SERVICE_POOR_VALUE);
       break;
   }
 
@@ -208,8 +209,8 @@ static void update_calc_text(void) {
 
   // Formating tip dollar value
   int tip_amt_raw = (int) (g_subtotal_cents * (1 + tip_pct / 100.0f));
-  int tip_amt_dollars = tip_amt_row / 100;
-  int tip_amt_cents = tip_amt_row % 100;
+  int tip_amt_dollars = tip_amt_raw / 100;
+  int tip_amt_cents = tip_amt_raw % 100;
   snprintf(s_tip_amt_text, sizeof(s_tip_amt_text), "$%d.%d", tip_amt_dollars, tip_amt_cents);
 
   // Formatting total
@@ -300,7 +301,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   if (s_current_input_selection == TOTAL_INPUTS)
     s_current_input_selection = 0;
 
-  update_input_selection;
+  update_input_selection();
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
