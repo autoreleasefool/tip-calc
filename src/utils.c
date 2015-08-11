@@ -8,9 +8,9 @@
 // Input values
 int g_subtotal_cents = 2000;
 int g_service_selection = 1;
-int g_tip_pct_great = 23;
+int g_tip_pct_great = 22;
 int g_tip_pct_avg = 18;
-int g_tip_pct_poor = 15;
+int g_tip_pct_poor = 14;
 
 void load_tip_values(void) {
   if (persist_exists(TIP_PCT_GREAT_KEY))
