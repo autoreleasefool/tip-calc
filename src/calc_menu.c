@@ -33,8 +33,12 @@ static GFont s_res_gothic_24;
 static Layer *s_layer_separator;
 
 // Selection indicators
-static InverterLayer *s_inverter_current_input;
-static InverterLayer *s_inverter_subtotal_input;
+#ifndef PBL_COLOR
+  static InverterLayer *s_inverter_current_input;
+  static InverterLayer *s_inverter_subtotal_input;
+#else
+  static Layer *s_layer_subtotal_line;
+#endif
 static AppTimer *s_input_flash_timer;
 
 // Labels
@@ -67,6 +71,9 @@ static void update_input_flash(void *data);
 static void update_input_selection(void);
 static void update_calc_text(void);
 static void draw_separator(Layer *source_layer, GContext *ctx);
+#ifdef PBL_COLOR
+  static void draw_subtotal_underline(Layer *source_layer, GContext *ctx);
+#endif
 
 static void initialise_ui(void) {
   s_main_window = window_create();
@@ -138,10 +145,15 @@ static void initialise_ui(void) {
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_total);
 
   // Initialising selection indicators
-  s_inverter_current_input = inverter_layer_create(GRect(1, 1, 60, 28));
-  layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_current_input);
-  s_inverter_subtotal_input = inverter_layer_create(GRect(70, 1, 70, 28));
-  layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_subtotal_input);
+  #ifndef PBL_COLOR
+    s_inverter_current_input = inverter_layer_create(GRect(1, 1, 60, 28));
+    layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_current_input);
+    s_inverter_subtotal_input = inverter_layer_create(GRect(70, 1, 70, 28));
+    layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_subtotal_input);
+  #else
+    s_layer_subtotal_line = layer_create(GRect(70, 29, 70, 2));
+    layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_subtotal_line);
+  #endif
 }
 
 static void destroy_ui() {
@@ -164,9 +176,13 @@ static void destroy_ui() {
   text_layer_destroy(s_textlayer_tip_amt);
   text_layer_destroy(s_textlayer_total);
 
-  // Destroying selection indicators
-  inverter_layer_destroy(s_inverter_current_input);
-  inverter_layer_destroy(s_inverter_subtotal_input);
+  #ifndef PBL_COLOR
+    // Destroying selection indicators
+    inverter_layer_destroy(s_inverter_current_input);
+    inverter_layer_destroy(s_inverter_subtotal_input);
+  #else
+    layer_destroy(s_layer_subtotal_line);
+  #endif
 }
 
 static void main_window_load(Window *window) {
@@ -194,8 +210,13 @@ static void unregister_input_flash_timer(void) {
 static void update_input_flash(void *data) {
   if (s_current_input_selection == INPUT_SUBTOTAL_CENTS
       || s_current_input_selection == INPUT_SUBTOTAL_DOLLARS) {
-    layer_set_hidden((Layer *)s_inverter_subtotal_input,
-        !layer_get_hidden((Layer *)s_inverter_subtotal_input));
+    #ifndef PBL_COLOR
+      layer_set_hidden((Layer *)s_inverter_subtotal_input,
+          !layer_get_hidden((Layer *)s_inverter_subtotal_input));
+    #else
+      layer_set_hidden((Layer *)s_layer_subtotal_line,
+          !layer_get_hidden((Layer *)s_layer_subtotal_line));
+    #endif
     s_input_flash_timer = app_timer_register(500, (AppTimerCallback)update_input_flash, NULL);
   } else {
     if (s_input_flash_timer != NULL) {
@@ -208,22 +229,48 @@ static void update_input_flash(void *data) {
 static void update_input_selection(void) {
   switch (s_current_input_selection) {
     case INPUT_SUBTOTAL_DOLLARS:
-      layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 5, 59, 26));
-      layer_set_frame(inverter_layer_get_layer(s_inverter_subtotal_input), GRect(69, 5, 47, 26));
-      layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), false);
+      #ifndef PBL_COLOR
+        layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 5, 59, 26));
+        layer_set_frame(inverter_layer_get_layer(s_inverter_subtotal_input), GRect(69, 5, 47, 26));
+        layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), false);
+      #else
+        text_layer_set_background_color(s_textlayer_label_subtotal, GColorBlack);
+        text_layer_set_text_color(s_textlayer_label_subtotal, GColorWhite);
+        text_layer_set_background_color(s_textlayer_label_tip_pct, GColorWhite);
+        text_layer_set_text_color(s_textlayer_label_tip_pct, GColorBlack);
+        layer_set_frame(s_layer_subtotal_line, GRect(70, 29, 70, 2));
+      #endif
       break;
     case INPUT_SUBTOTAL_CENTS:
-      layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 5, 59, 26));
-      layer_set_frame(inverter_layer_get_layer(s_inverter_subtotal_input), GRect(120, 5, 20, 26));
-      layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), false);
+      #ifndef PBL_COLOR
+        layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 5, 59, 26));
+        layer_set_frame(inverter_layer_get_layer(s_inverter_subtotal_input), GRect(120, 5, 20, 26));
+        layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), false);
+      #else
+        layer_set_frame(s_layer_subtotal_line, GRect(120, 29, 20, 2));
+      #endif
       break;
     case INPUT_SERVICE:
-      layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 33, 59, 26));
-      layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), true);
+      #ifndef PBL_COLOR
+        layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 33, 59, 26));
+        layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), true);
+      #else
+        text_layer_set_background_color(s_textlayer_label_service, GColorBlack);
+        text_layer_set_text_color(s_textlayer_label_service, GColorWhite);
+        text_layer_set_background_color(s_textlayer_label_subtotal, GColorWhite);
+        text_layer_set_text_color(s_textlayer_label_subtotal, GColorBlack);
+      #endif
       break;
     case INPUT_TIP:
-      layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 61, 59, 26));
-      layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), true);
+      #ifndef PBL_COLOR
+        layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 61, 59, 26));
+        layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), true);
+      #else
+        text_layer_set_background_color(s_textlayer_label_tip_pct, GColorBlack);
+        text_layer_set_text_color(s_textlayer_label_tip_pct, GColorWhite);
+        text_layer_set_background_color(s_textlayer_label_service, GColorWhite);
+        text_layer_set_text_color(s_textlayer_label_service, GColorBlack);
+      #endif
       break;
   }
 }
@@ -276,6 +323,13 @@ static void update_calc_text(void) {
 static void draw_separator(Layer *source_layer, GContext *ctx) {
   GPoint p0 = GPoint(0, 0);
   GPoint p1 = GPoint(134, 0);
+  graphics_context_set_stroke_color(ctx, GColorBlack);
+  graphics_draw_line(ctx, p0, p1);
+}
+
+static void draw_subtotal_underline(Layer *source_layer, GContext *ctx) {
+  GPoint p0 = GPoint(0, 0);
+  GPoint p1 = GPoint(144, 0);
   graphics_context_set_stroke_color(ctx, GColorBlack);
   graphics_draw_line(ctx, p0, p1);
 }
