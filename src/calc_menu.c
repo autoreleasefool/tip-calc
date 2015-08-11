@@ -29,6 +29,7 @@
 static Window *s_main_window;
 static GFont s_res_gothic_24_bold;
 static GFont s_res_gothic_24;
+static Layer *s_layer_separator;
 
 // Selection indicators
 static InverterLayer *s_inverter_current_input;
@@ -64,6 +65,7 @@ static void unregister_input_flash_timer(void);
 static void update_input_flash(void *data);
 static void update_input_selection(void);
 static void update_calc_text(void);
+static void draw_separator(Layer *source_layer, GContext *ctx);
 
 static void initialise_ui(void) {
   s_main_window = window_create();
@@ -71,6 +73,11 @@ static void initialise_ui(void) {
   // Initialising fonts
   s_res_gothic_24_bold = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
   s_res_gothic_24 = fonts_get_system_font(FONT_KEY_GOTHIC_24);
+
+  // Initialising separator
+  s_layer_separator = layer_create(GRect(5, 93, 134, 1));
+  layer_set_update_proc(s_layer_separator, draw_separator);
+  layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_separator);
 
   //Initialising labels
   s_textlayer_label_subtotal = text_layer_create(GRect(1, 1, 60, 28));
@@ -138,6 +145,9 @@ static void initialise_ui(void) {
 
 static void destroy_ui() {
   window_destroy(s_main_window);
+
+  // Destroying separator
+  layer_destroy(s_layer_separator);
 
   // Destroying labels
   text_layer_destroy(s_textlayer_label_subtotal);
@@ -260,6 +270,13 @@ static void update_calc_text(void) {
   text_layer_set_text(s_textlayer_tip_pct, s_tip_pct_text);
   text_layer_set_text(s_textlayer_tip_amt, s_tip_amt_text);
   text_layer_set_text(s_textlayer_total, s_total_text);
+}
+
+static void draw_separator(Layer *source_layer, GContext *ctx) {
+  GPoint p0 = GPoint(0, 0);
+  GPoint p1 = GPoint(134, 0);
+  graphics_context_set_stroke_color(ctx, GColorBlack);
+  graphics_draw_line(ctx, p0, p1);
 }
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
