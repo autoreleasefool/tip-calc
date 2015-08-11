@@ -13,5 +13,5 @@ Quickly calculate the tip on your bill based on the quality of service you feel 
 Graphics
 --------
 
-![Aplite screenshot](./graphics/pebble_screenshots_aplite.png)
-![Basalt screenshot](./graphics/pebble_screenshots_basalt.png)
+![Aplite screenshot](./graphics/pebble_screenshot_aplite.png)
+![Basalt screenshot](./graphics/pebble_screenshot_basalt.png)
