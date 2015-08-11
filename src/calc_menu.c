@@ -38,6 +38,7 @@ static Layer *s_layer_separator;
   static InverterLayer *s_inverter_subtotal_input;
 #else
   static Layer *s_layer_subtotal_line;
+  static Layer *s_layer_current_input;
 #endif
 static AppTimer *s_input_flash_timer;
 
@@ -73,6 +74,7 @@ static void update_calc_text(void);
 static void draw_separator(Layer *source_layer, GContext *ctx);
 #ifdef PBL_COLOR
   static void draw_subtotal_underline(Layer *source_layer, GContext *ctx);
+  static void draw_current_input(Layer *source_layer, GContext *ctx);
 #endif
 
 static void initialise_ui(void) {
@@ -154,6 +156,9 @@ static void initialise_ui(void) {
     s_layer_subtotal_line = layer_create(GRect(70, 29, 70, 2));
     layer_set_update_proc(s_layer_subtotal_line, draw_subtotal_underline);
     layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_subtotal_line);
+    s_layer_current_input = layer_create(GRect(1, 1, 60, 28));
+    layer_set_update_proc(s_layer_current_input, draw_current_input);
+    layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_current_input);
   #endif
 }
 
@@ -182,7 +187,9 @@ static void destroy_ui() {
     inverter_layer_destroy(s_inverter_current_input);
     inverter_layer_destroy(s_inverter_subtotal_input);
   #else
+    // Destroying selection indicators
     layer_destroy(s_layer_subtotal_line);
+    layer_destroy(s_layer_current_input);
   #endif
 }
 
@@ -236,10 +243,9 @@ static void update_input_selection(void) {
         layer_set_frame(inverter_layer_get_layer(s_inverter_subtotal_input), GRect(69, 5, 47, 26));
         layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), false);
       #else
-        text_layer_set_background_color(s_textlayer_label_subtotal, GColorBlack);
         text_layer_set_text_color(s_textlayer_label_subtotal, GColorWhite);
-        text_layer_set_background_color(s_textlayer_label_tip_pct, GColorWhite);
         text_layer_set_text_color(s_textlayer_label_tip_pct, GColorBlack);
+        layer_set_frame(s_layer_current_input, GRect(5, 5, 59, 26));
         layer_set_frame(s_layer_subtotal_line, GRect(70, 29, 48, 2));
         layer_set_hidden(s_layer_subtotal_line, false);
       #endif
@@ -259,10 +265,9 @@ static void update_input_selection(void) {
         layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 33, 59, 26));
         layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), true);
       #else
-        text_layer_set_background_color(s_textlayer_label_service, GColorBlack);
         text_layer_set_text_color(s_textlayer_label_service, GColorWhite);
-        text_layer_set_background_color(s_textlayer_label_subtotal, GColorWhite);
         text_layer_set_text_color(s_textlayer_label_subtotal, GColorBlack);
+        layer_set_frame(s_layer_current_input, GRect(5, 33, 59, 26));
         layer_set_hidden(s_layer_subtotal_line, true);
       #endif
       break;
@@ -271,10 +276,9 @@ static void update_input_selection(void) {
         layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 61, 59, 26));
         layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), true);
       #else
-        text_layer_set_background_color(s_textlayer_label_tip_pct, GColorBlack);
         text_layer_set_text_color(s_textlayer_label_tip_pct, GColorWhite);
-        text_layer_set_background_color(s_textlayer_label_service, GColorWhite);
         text_layer_set_text_color(s_textlayer_label_service, GColorBlack);
+        layer_set_frame(s_layer_current_input, GRect(5, 61, 59, 26));
         layer_set_hidden(s_layer_subtotal_line, true);
       #endif
       break;
@@ -333,12 +337,19 @@ static void draw_separator(Layer *source_layer, GContext *ctx) {
   graphics_draw_line(ctx, p0, p1);
 }
 
-static void draw_subtotal_underline(Layer *source_layer, GContext *ctx) {
-  GPoint p0 = GPoint(0, 0);
-  GPoint p1 = GPoint(144, 0);
-  graphics_context_set_stroke_color(ctx, GColorBlack);
-  graphics_draw_line(ctx, p0, p1);
-}
+#ifdef PBL_COLOR
+  static void draw_subtotal_underline(Layer *source_layer, GContext *ctx) {
+    GPoint p0 = GPoint(0, 0);
+    GPoint p1 = GPoint(144, 0);
+    graphics_context_set_stroke_color(ctx, GColorBlack);
+    graphics_draw_line(ctx, p0, p1);
+  }
+
+  static void draw_current_input(Layer *source_layer, GContext *ctx) {
+    graphics_context_set_fill_color(ctx, GColorBlack);
+    graphics_fill_rect(ctx, GRect(0, 0, 59, 26), 0, GCornerMaskNone);
+  }
+#endif
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
   switch (s_current_input_selection) {
