@@ -24,6 +24,7 @@
 #define TOTAL_INPUTS 4
 
 #define MAX_SUBTOTAL 99999
+#define MAX_TIP_PCT 999
 
 // Main UI
 static Window *s_main_window;
@@ -288,6 +289,8 @@ static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
       break;
     case INPUT_SUBTOTAL_CENTS:
       g_subtotal_cents++;
+      if (g_subtotal_cents > MAX_SUBTOTAL)
+        g_subtotal_cents = MAX_SUBTOTAL;
       break;
     case INPUT_SERVICE:
       g_service_selection++;
@@ -298,12 +301,18 @@ static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
       switch (g_service_selection) {
         case SERVICE_GREAT_ID:
           g_tip_pct_great++;
+          if (g_tip_pct_great > MAX_TIP_PCT)
+            g_tip_pct_great = MAX_TIP_PCT;
           break;
         case SERVICE_AVG_ID:
           g_tip_pct_avg++;
+          if (g_tip_pct_avg > MAX_TIP_PCT)
+            g_tip_pct_avg = MAX_TIP_PCT;
           break;
         case SERVICE_POOR_ID:
           g_tip_pct_poor++;
+          if (g_tip_pct_poor > MAX_TIP_PCT)
+            g_tip_pct_poor = MAX_TIP_PCT;
       }
       break;
   }
