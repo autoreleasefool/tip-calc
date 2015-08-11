@@ -16,6 +16,13 @@
 #define SMILE "\U0001F60A"
 #define FROWN "\U0001F629"
 
+// Status bar offset
+#ifdef PBL_COLOR
+  #define STATUS_BAR_OFFSET 16
+#else
+  #define STATUS_BAR_OFFSET 0
+#endif
+
 // Input identifiers
 #define INPUT_SUBTOTAL_DOLLARS 0
 #define INPUT_SUBTOTAL_CENTS 1
@@ -31,6 +38,9 @@ static Window *s_main_window;
 static GFont s_res_gothic_24_bold;
 static GFont s_res_gothic_24;
 static Layer *s_layer_separator;
+#ifdef PBL_COLOR
+  static StatusBarLayer *s_status_bar;
+#endif
 
 // Selection indicators
 #ifndef PBL_COLOR
@@ -82,7 +92,15 @@ static void draw_separator(Layer *source_layer, GContext *ctx);
 static void initialise_ui(void) {
   s_main_window = window_create();
   #ifdef PBL_COLOR
-    window_set_background_color(s_main_window, GColorVividCerulean);
+    window_set_background_color(s_main_window, GColorCeleste);
+
+    s_layer_current_input = layer_create(GRect(1, 1 + STATUS_BAR_OFFSET, 60, 28));
+    layer_set_update_proc(s_layer_current_input, draw_current_input);
+    layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_current_input);
+
+    s_layer_current_service = layer_create(GRect(69, 33 + STATUS_BAR_OFFSET, 71, 26));
+    layer_set_update_proc(s_layer_current_service, draw_current_service);
+    layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_current_service);
   #endif
 
   // Initialising fonts
@@ -90,86 +108,94 @@ static void initialise_ui(void) {
   s_res_gothic_24 = fonts_get_system_font(FONT_KEY_GOTHIC_24);
 
   // Initialising separator
-  s_layer_separator = layer_create(GRect(5, 93, 134, 1));
+  s_layer_separator = layer_create(GRect(5, 93 + STATUS_BAR_OFFSET, 134, 1));
   layer_set_update_proc(s_layer_separator, draw_separator);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_separator);
 
   //Initialising labels
-  s_textlayer_label_subtotal = text_layer_create(GRect(1, 1, 60, 28));
+  s_textlayer_label_subtotal = text_layer_create(GRect(1, 1 + STATUS_BAR_OFFSET, 60, 28));
   text_layer_set_text(s_textlayer_label_subtotal, "Subtotal");
   text_layer_set_text_alignment(s_textlayer_label_subtotal, GTextAlignmentRight);
   text_layer_set_font(s_textlayer_label_subtotal, s_res_gothic_24);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_label_subtotal);
 
-  s_textlayer_label_service = text_layer_create(GRect(1, 29, 60, 28));
+  s_textlayer_label_service = text_layer_create(GRect(1, 29 + STATUS_BAR_OFFSET, 60, 28));
   text_layer_set_text(s_textlayer_label_service, "Service");
   text_layer_set_text_alignment(s_textlayer_label_service, GTextAlignmentRight);
   text_layer_set_font(s_textlayer_label_service, s_res_gothic_24);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_label_service);
 
-  s_textlayer_label_tip_pct = text_layer_create(GRect(1, 57, 60, 28));
+  s_textlayer_label_tip_pct = text_layer_create(GRect(1, 57 + STATUS_BAR_OFFSET, 60, 28));
   text_layer_set_text(s_textlayer_label_tip_pct, "Tip %");
   text_layer_set_text_alignment(s_textlayer_label_tip_pct, GTextAlignmentRight);
   text_layer_set_font(s_textlayer_label_tip_pct, s_res_gothic_24);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_label_tip_pct);
 
-  s_textlayer_label_tip_amt = text_layer_create(GRect(1, 96, 60, 28));
+  s_textlayer_label_tip_amt = text_layer_create(GRect(1, 96 + STATUS_BAR_OFFSET, 60, 28));
   text_layer_set_text(s_textlayer_label_tip_amt, "Tip $");
   text_layer_set_text_alignment(s_textlayer_label_tip_amt, GTextAlignmentRight);
   text_layer_set_font(s_textlayer_label_tip_amt, s_res_gothic_24);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_label_tip_amt);
 
-  s_textlayer_label_total = text_layer_create(GRect(1, 124, 60, 28));
+  s_textlayer_label_total = text_layer_create(GRect(1, 124 + STATUS_BAR_OFFSET, 60, 28));
   text_layer_set_text(s_textlayer_label_total, "Total");
   text_layer_set_text_alignment(s_textlayer_label_total, GTextAlignmentRight);
   text_layer_set_font(s_textlayer_label_total, s_res_gothic_24);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_label_total);
 
   // Initialising outputs
-  s_textlayer_subtotal = text_layer_create(GRect(70, 1, 70, 28));
+  s_textlayer_subtotal = text_layer_create(GRect(70, 1 + STATUS_BAR_OFFSET, 70, 28));
   text_layer_set_text_alignment(s_textlayer_subtotal, GTextAlignmentRight);
   text_layer_set_font(s_textlayer_subtotal, s_res_gothic_24_bold);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_subtotal);
 
-  s_textlayer_service = text_layer_create(GRect(70, 29, 70, 28));
+  s_textlayer_service = text_layer_create(GRect(70, 29 + STATUS_BAR_OFFSET, 70, 28));
   text_layer_set_text_alignment(s_textlayer_service, GTextAlignmentRight);
   text_layer_set_font(s_textlayer_service, s_res_gothic_24_bold);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_service);
 
-  s_textlayer_tip_pct = text_layer_create(GRect(70, 57, 70, 28));
+  s_textlayer_tip_pct = text_layer_create(GRect(70, 57 + STATUS_BAR_OFFSET, 70, 28));
   text_layer_set_text_alignment(s_textlayer_tip_pct, GTextAlignmentRight);
   text_layer_set_font(s_textlayer_tip_pct, s_res_gothic_24_bold);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_tip_pct);
 
-  s_textlayer_tip_amt = text_layer_create(GRect(70, 96, 70, 28));
+  s_textlayer_tip_amt = text_layer_create(GRect(70, 96 + STATUS_BAR_OFFSET, 70, 28));
   text_layer_set_text_alignment(s_textlayer_tip_amt, GTextAlignmentRight);
   text_layer_set_font(s_textlayer_tip_amt, s_res_gothic_24_bold);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_tip_amt);
 
-  s_textlayer_total = text_layer_create(GRect(70, 124, 70, 28));
+  s_textlayer_total = text_layer_create(GRect(70, 124 + STATUS_BAR_OFFSET, 70, 28));
   text_layer_set_text_alignment(s_textlayer_total, GTextAlignmentRight);
   text_layer_set_font(s_textlayer_total, s_res_gothic_24_bold);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_total);
 
   // Initialising selection indicators
   #ifndef PBL_COLOR
-    s_inverter_current_input = inverter_layer_create(GRect(5, 5, 59, 26));
+    s_inverter_current_input = inverter_layer_create(GRect(5, 5 + STATUS_BAR_OFFSET, 59, 26));
     layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_current_input);
 
-    s_inverter_subtotal_input = inverter_layer_create(GRect(69, 5, 47, 26));
+    s_inverter_subtotal_input = inverter_layer_create(GRect(69, 5 + STATUS_BAR_OFFSET, 47, 26));
     layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_subtotal_input);
   #else
-    s_layer_subtotal_line = layer_create(GRect(70, 29, 70, 2));
+    s_layer_subtotal_line = layer_create(GRect(70, 29 + STATUS_BAR_OFFSET, 70, 2));
     layer_set_update_proc(s_layer_subtotal_line, draw_subtotal_underline);
     layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_subtotal_line);
 
-    s_layer_current_input = layer_create(GRect(1, 1, 60, 28));
-    layer_set_update_proc(s_layer_current_input, draw_current_input);
-    layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_current_input);
+    s_status_bar = status_bar_layer_create();
+    layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_status_bar);
 
-    s_layer_current_service = layer_create(GRect(69, 33, 71, 26));
-    layer_set_update_proc(s_layer_current_service, draw_current_service);
-    layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_current_service);
+    // Setting background of texts to transparent
+    text_layer_set_background_color(s_textlayer_label_subtotal, GColorClear);
+    text_layer_set_background_color(s_textlayer_label_service, GColorClear);
+    text_layer_set_background_color(s_textlayer_label_tip_pct, GColorClear);
+    text_layer_set_background_color(s_textlayer_label_tip_amt, GColorClear);
+    text_layer_set_background_color(s_textlayer_label_total, GColorClear);
+
+    text_layer_set_background_color(s_textlayer_subtotal, GColorClear);
+    text_layer_set_background_color(s_textlayer_service, GColorClear);
+    text_layer_set_background_color(s_textlayer_tip_pct, GColorClear);
+    text_layer_set_background_color(s_textlayer_tip_amt, GColorClear);
+    text_layer_set_background_color(s_textlayer_total, GColorClear);
   #endif
 }
 
@@ -201,6 +227,7 @@ static void destroy_ui() {
     // Destroying selection indicators
     layer_destroy(s_layer_subtotal_line);
     layer_destroy(s_layer_current_input);
+    status_bar_layer_destroy(s_status_bar);
   #endif
 }
 
@@ -250,46 +277,46 @@ static void update_input_selection(void) {
   switch (s_current_input_selection) {
     case INPUT_SUBTOTAL_DOLLARS:
       #ifndef PBL_COLOR
-        layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 5, 59, 26));
-        layer_set_frame(inverter_layer_get_layer(s_inverter_subtotal_input), GRect(69, 5, 47, 26));
+        layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 5 + STATUS_BAR_OFFSET, 59, 26));
+        layer_set_frame(inverter_layer_get_layer(s_inverter_subtotal_input), GRect(69, 5 + STATUS_BAR_OFFSET, 47, 26));
         layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), false);
       #else
         text_layer_set_text_color(s_textlayer_label_subtotal, GColorWhite);
         text_layer_set_text_color(s_textlayer_label_tip_pct, GColorBlack);
-        layer_set_frame(s_layer_current_input, GRect(5, 5, 59, 26));
-        layer_set_frame(s_layer_subtotal_line, GRect(70, 29, 48, 2));
+        layer_set_frame(s_layer_current_input, GRect(5, 5 + STATUS_BAR_OFFSET, 59, 26));
+        layer_set_frame(s_layer_subtotal_line, GRect(70, 29 + STATUS_BAR_OFFSET, 48, 2));
         layer_set_hidden(s_layer_subtotal_line, false);
       #endif
       break;
     case INPUT_SUBTOTAL_CENTS:
       #ifndef PBL_COLOR
-        layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 5, 59, 26));
-        layer_set_frame(inverter_layer_get_layer(s_inverter_subtotal_input), GRect(120, 5, 20, 26));
+        layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 5 + STATUS_BAR_OFFSET, 59, 26));
+        layer_set_frame(inverter_layer_get_layer(s_inverter_subtotal_input), GRect(120, 5 + STATUS_BAR_OFFSET, 20, 26));
         layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), false);
       #else
-        layer_set_frame(s_layer_subtotal_line, GRect(120, 29, 20, 2));
+        layer_set_frame(s_layer_subtotal_line, GRect(120, 29 + STATUS_BAR_OFFSET, 20, 2));
         layer_set_hidden(s_layer_subtotal_line, false);
       #endif
       break;
     case INPUT_SERVICE:
       #ifndef PBL_COLOR
-        layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 33, 59, 26));
+        layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 33 + STATUS_BAR_OFFSET, 59, 26));
         layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), true);
       #else
         text_layer_set_text_color(s_textlayer_label_service, GColorWhite);
         text_layer_set_text_color(s_textlayer_label_subtotal, GColorBlack);
-        layer_set_frame(s_layer_current_input, GRect(5, 33, 59, 26));
+        layer_set_frame(s_layer_current_input, GRect(5, 33 + STATUS_BAR_OFFSET, 59, 26));
         layer_set_hidden(s_layer_subtotal_line, true);
       #endif
       break;
     case INPUT_TIP:
       #ifndef PBL_COLOR
-        layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 61, 59, 26));
+        layer_set_frame(inverter_layer_get_layer(s_inverter_current_input), GRect(5, 61 + STATUS_BAR_OFFSET, 59, 26));
         layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), true);
       #else
         text_layer_set_text_color(s_textlayer_label_tip_pct, GColorWhite);
         text_layer_set_text_color(s_textlayer_label_service, GColorBlack);
-        layer_set_frame(s_layer_current_input, GRect(5, 61, 59, 26));
+        layer_set_frame(s_layer_current_input, GRect(5, 61 + STATUS_BAR_OFFSET, 59, 26));
         layer_set_hidden(s_layer_subtotal_line, true);
       #endif
       break;
@@ -366,23 +393,23 @@ static void draw_separator(Layer *source_layer, GContext *ctx) {
   }
 
   static void draw_current_input(Layer *source_layer, GContext *ctx) {
-    graphics_context_set_fill_color(ctx, GColorDukeBlue);
-    graphics_fill_rect(ctx, GRect(0, 0, 59, 26), 0, GCornerMaskNone);
+    graphics_context_set_fill_color(ctx, GColorBlueMoon);
+    graphics_fill_rect(ctx, GRect(0, 0, 59, 26), 0, GCornerNone);
   }
 
   static void draw_current_service(Layer *source_layer, GContext *ctx) {
     switch (g_service_selection) {
       case SERVICE_GREAT_ID:
-        graphics_context_set_fill_color(ctx, GColorGreen);
+        graphics_context_set_fill_color(ctx, GColorMintGreen);
         break;
       case SERVICE_AVG_ID:
-        graphics_context_set_fill_color(ctx, GColorCeleste);
+        graphics_context_set_fill_color(ctx, GColorBabyBlueEyes);
         break;
       case SERVICE_POOR_ID:
-        graphics_context_set_fill_color(ctx, GColorRed);
+        graphics_context_set_fill_color(ctx, GColorMelon);
         break;
     }
-    graphics_fill_rect(ctx, GRect(0, 0, 71, 26), 0, GCornerMaskNone);
+    graphics_fill_rect(ctx, GRect(0, 0, 71, 26), 0, GCornerNone);
   }
 #endif
 
@@ -402,7 +429,9 @@ static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
       g_service_selection++;
       if (g_service_selection == TOTAL_SERVICE_SELECTIONS)
         g_service_selection = 0;
+      #ifdef PBL_COLOR
         layer_mark_dirty(s_layer_current_service);
+      #endif
       break;
     case INPUT_TIP:
       switch (g_service_selection) {
