@@ -39,6 +39,7 @@ static Layer *s_layer_separator;
 #else
   static Layer *s_layer_subtotal_line;
   static Layer *s_layer_current_input;
+  static Layer *s_layer_current_service;
 #endif
 static AppTimer *s_input_flash_timer;
 
@@ -75,10 +76,14 @@ static void draw_separator(Layer *source_layer, GContext *ctx);
 #ifdef PBL_COLOR
   static void draw_subtotal_underline(Layer *source_layer, GContext *ctx);
   static void draw_current_input(Layer *source_layer, GContext *ctx);
+  static void draw_current_service(Layer *source_layer, GContext *ctx);
 #endif
 
 static void initialise_ui(void) {
   s_main_window = window_create();
+  #ifdef PBL_COLOR
+    window_set_background_color(s_main_window, GColorVividCerulean);
+  #endif
 
   // Initialising fonts
   s_res_gothic_24_bold = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
@@ -148,17 +153,23 @@ static void initialise_ui(void) {
 
   // Initialising selection indicators
   #ifndef PBL_COLOR
-    s_inverter_current_input = inverter_layer_create(GRect(1, 1, 60, 28));
+    s_inverter_current_input = inverter_layer_create(GRect(5, 5, 59, 26));
     layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_current_input);
-    s_inverter_subtotal_input = inverter_layer_create(GRect(70, 1, 70, 28));
+
+    s_inverter_subtotal_input = inverter_layer_create(GRect(69, 5, 47, 26));
     layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_subtotal_input);
   #else
     s_layer_subtotal_line = layer_create(GRect(70, 29, 70, 2));
     layer_set_update_proc(s_layer_subtotal_line, draw_subtotal_underline);
     layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_subtotal_line);
+
     s_layer_current_input = layer_create(GRect(1, 1, 60, 28));
     layer_set_update_proc(s_layer_current_input, draw_current_input);
     layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_current_input);
+
+    s_layer_current_service = layer_create(GRect(69, 33, 71, 26));
+    layer_set_update_proc(s_layer_current_service, draw_current_service);
+    layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_current_service);
   #endif
 }
 
@@ -297,14 +308,23 @@ static void update_calc_text(void) {
     case SERVICE_GREAT_ID:
       tip_pct = g_tip_pct_great;
       snprintf(s_service_text, sizeof(s_service_text), "%s %s", SERVICE_GREAT_VALUE, BIG_SMILE);
+      #ifdef PBL_COLOR
+
+      #endif
       break;
     case SERVICE_AVG_ID:
       tip_pct = g_tip_pct_avg;
       snprintf(s_service_text, sizeof(s_service_text), "%s %s", SERVICE_AVG_VALUE, SMILE);
+      #ifdef PBL_COLOR
+
+      #endif
       break;
     case SERVICE_POOR_ID:
       tip_pct = g_tip_pct_poor;
       snprintf(s_service_text, sizeof(s_service_text), "%s %s", SERVICE_POOR_VALUE, FROWN);
+      #ifdef PBL_COLOR
+
+      #endif
       break;
   }
 
@@ -346,8 +366,23 @@ static void draw_separator(Layer *source_layer, GContext *ctx) {
   }
 
   static void draw_current_input(Layer *source_layer, GContext *ctx) {
-    graphics_context_set_fill_color(ctx, GColorBlack);
+    graphics_context_set_fill_color(ctx, GColorDukeBlue);
     graphics_fill_rect(ctx, GRect(0, 0, 59, 26), 0, GCornerMaskNone);
+  }
+
+  static void draw_current_service(Layer *source_layer, GContext *ctx) {
+    switch (g_service_selection) {
+      case SERVICE_GREAT_ID:
+        graphics_context_set_fill_color(ctx, GColorGreen);
+        break;
+      case SERVICE_AVG_ID:
+        graphics_context_set_fill_color(ctx, GColorCeleste);
+        break;
+      case SERVICE_POOR_ID:
+        graphics_context_set_fill_color(ctx, GColorRed);
+        break;
+    }
+    graphics_fill_rect(ctx, GRect(0, 0, 71, 26), 0, GCornerMaskNone);
   }
 #endif
 
@@ -367,6 +402,7 @@ static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
       g_service_selection++;
       if (g_service_selection == TOTAL_SERVICE_SELECTIONS)
         g_service_selection = 0;
+        layer_mark_dirty(s_layer_current_service);
       break;
     case INPUT_TIP:
       switch (g_service_selection) {
