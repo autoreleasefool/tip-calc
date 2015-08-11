@@ -152,6 +152,7 @@ static void initialise_ui(void) {
     layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_inverter_subtotal_input);
   #else
     s_layer_subtotal_line = layer_create(GRect(70, 29, 70, 2));
+    layer_set_update_proc(s_layer_subtotal_line, draw_subtotal_underline);
     layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_layer_subtotal_line);
   #endif
 }
@@ -188,6 +189,7 @@ static void destroy_ui() {
 static void main_window_load(Window *window) {
   update_input_selection();
   update_calc_text();
+  register_input_flash_timer();
 }
 
 static void main_window_unload(Window *window) {
@@ -238,7 +240,8 @@ static void update_input_selection(void) {
         text_layer_set_text_color(s_textlayer_label_subtotal, GColorWhite);
         text_layer_set_background_color(s_textlayer_label_tip_pct, GColorWhite);
         text_layer_set_text_color(s_textlayer_label_tip_pct, GColorBlack);
-        layer_set_frame(s_layer_subtotal_line, GRect(70, 29, 70, 2));
+        layer_set_frame(s_layer_subtotal_line, GRect(70, 29, 48, 2));
+        layer_set_hidden(s_layer_subtotal_line, false);
       #endif
       break;
     case INPUT_SUBTOTAL_CENTS:
@@ -248,6 +251,7 @@ static void update_input_selection(void) {
         layer_set_hidden(inverter_layer_get_layer(s_inverter_subtotal_input), false);
       #else
         layer_set_frame(s_layer_subtotal_line, GRect(120, 29, 20, 2));
+        layer_set_hidden(s_layer_subtotal_line, false);
       #endif
       break;
     case INPUT_SERVICE:
@@ -259,6 +263,7 @@ static void update_input_selection(void) {
         text_layer_set_text_color(s_textlayer_label_service, GColorWhite);
         text_layer_set_background_color(s_textlayer_label_subtotal, GColorWhite);
         text_layer_set_text_color(s_textlayer_label_subtotal, GColorBlack);
+        layer_set_hidden(s_layer_subtotal_line, true);
       #endif
       break;
     case INPUT_TIP:
@@ -270,6 +275,7 @@ static void update_input_selection(void) {
         text_layer_set_text_color(s_textlayer_label_tip_pct, GColorWhite);
         text_layer_set_background_color(s_textlayer_label_service, GColorWhite);
         text_layer_set_text_color(s_textlayer_label_service, GColorBlack);
+        layer_set_hidden(s_layer_subtotal_line, true);
       #endif
       break;
   }
