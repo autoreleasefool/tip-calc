@@ -160,7 +160,7 @@ static void initialise_ui(void) {
   text_layer_set_font(s_textlayer_label_tip_pct, s_res_gothic_24);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_label_tip_pct);
 
-  snprintf(s_tip_label_text sizeof(s_tip_label_text), "Tip %s", get_current_currency_symbol());
+  snprintf(s_tip_label_text, sizeof(s_tip_label_text), "Tip %s", get_current_currency_symbol());
   s_textlayer_label_tip_amt = text_layer_create(GRect(1, 96 + STATUS_BAR_OFFSET, 60, 28));
   text_layer_set_text(s_textlayer_label_tip_amt, "Tip ");
   text_layer_set_text_alignment(s_textlayer_label_tip_amt, GTextAlignmentRight);
@@ -261,6 +261,17 @@ static void destroy_ui() {
   #endif
 }
 
+static void main_window_appear(Window *window) {
+  update_input_selection();
+  update_calc_text();
+  register_input_flash_timer();
+}
+
+static void main_window_load(Window *window) {
+  // does nothing
+}
+
+
 static void main_window_load(Window *window) {
   update_input_selection();
   update_calc_text();
@@ -353,17 +364,11 @@ static void update_input_selection(void) {
   }
 }
 
-static void convert_value_to_currency(char* output, int value) {
-  int value_dollars = value / 100;
-  int value_cents = value % 100;
-  snprintf(output, sizeof(output), "%s%d.%02d", get_current_currency_symbol(), value_dollars, value_cents);
-}
-
 static void update_calc_text(void) {
   // Formatting subtotal
   int subtotal_dollars = g_subtotal_cents / 100;
   int subtotal_cents = g_subtotal_cents % 100;
-  convert_value_to_currency(s_subtotal_text, g_subtotal_cents);
+  snprintf(s_subtotal_text, sizeof(s_subtotal_text), "%s%d.%02d", get_current_currency_symbol(), value_dollars, value_cents);
 
   // Formatting service
   int tip_pct = 0;
@@ -396,11 +401,15 @@ static void update_calc_text(void) {
 
   // Formating tip dollar value
   int tip_amt_raw = (int) (g_subtotal_cents * (tip_pct / 100.0f));
-  convert_value_to_currency(s_tip_amt_text, tip_amt_raw);
+  int tip_amt_dollars = tip_amt_raw / 100;
+  int tip_amt_cents = tip_amt_raw % 100;
+  snprintf(s_tip_amt_text, sizeof(s_tip_amt_text), "%s%d.%02d", get_current_currency_symbol(), tip_amt_dollars, tip_amt_cents);
 
   // Formatting total
   int total_raw = tip_amt_raw + g_subtotal_cents;
-  convert_value_to_currency(s_total_text, total_raw);
+  int total_dollars = total_raw / 100;
+  int total_cents = total_raw % 100;
+  snprintf(s_total_text, sizeof(s_total_text), "%s%d.%02d", get_current_currency_symbol(), total_dollars, total_cents);
 
   text_layer_set_text(s_textlayer_subtotal, s_subtotal_text);
   text_layer_set_text(s_textlayer_service, s_service_text);
@@ -564,6 +573,7 @@ void show_calc_menu(void) {
   window_set_window_handlers(s_main_window, (WindowHandlers) {
     .load = main_window_load,
     .unload = main_window_unload,
+    .appear = main_window_appear,
   });
   window_set_click_config_provider(s_main_window, click_config_provider);
   g_calc_is_on_stack = true;
