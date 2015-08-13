@@ -32,7 +32,7 @@
 static void init(void) {
   load_tip_values();
 
-  if (g_currency_set == 0) {}
+  if (g_currency_set == 0) {
     show_currency_menu();
   } else {
     load_default_values();
