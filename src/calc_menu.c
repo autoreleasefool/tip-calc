@@ -368,7 +368,7 @@ static void update_calc_text(void) {
   // Formatting subtotal
   int subtotal_dollars = g_subtotal_cents / 100;
   int subtotal_cents = g_subtotal_cents % 100;
-  snprintf(s_subtotal_text, sizeof(s_subtotal_text), "%s%d.%02d", get_current_currency_symbol(), value_dollars, value_cents);
+  snprintf(s_subtotal_text, sizeof(s_subtotal_text), "%s%d%s%02d", get_current_currency_symbol(), value_dollars, get_current_currency_separator(), value_cents);
 
   // Formatting service
   int tip_pct = 0;
@@ -403,13 +403,13 @@ static void update_calc_text(void) {
   int tip_amt_raw = (int) (g_subtotal_cents * (tip_pct / 100.0f));
   int tip_amt_dollars = tip_amt_raw / 100;
   int tip_amt_cents = tip_amt_raw % 100;
-  snprintf(s_tip_amt_text, sizeof(s_tip_amt_text), "%s%d.%02d", get_current_currency_symbol(), tip_amt_dollars, tip_amt_cents);
+  snprintf(s_tip_amt_text, sizeof(s_tip_amt_text), "%s%d%s%02d", get_current_currency_symbol(), tip_amt_dollars, get_current_currency_separator(), tip_amt_cents);
 
   // Formatting total
   int total_raw = tip_amt_raw + g_subtotal_cents;
   int total_dollars = total_raw / 100;
   int total_cents = total_raw % 100;
-  snprintf(s_total_text, sizeof(s_total_text), "%s%d.%02d", get_current_currency_symbol(), total_dollars, total_cents);
+  snprintf(s_total_text, sizeof(s_total_text), "%s%d%s%02d", get_current_currency_symbol(), total_dollars, get_current_currency_separator(), total_cents);
 
   text_layer_set_text(s_textlayer_subtotal, s_subtotal_text);
   text_layer_set_text(s_textlayer_service, s_service_text);

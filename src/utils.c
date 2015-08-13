@@ -82,3 +82,12 @@ char* get_current_currency_symbol(void) {
       return DOLLAR_SYM;
   }
 }
+
+char* get_current_currency_separator(void) {
+  switch (g_currency_type) {
+    case EURO:
+      return ",";
+    default:
+      return ".";
+  }
+}
