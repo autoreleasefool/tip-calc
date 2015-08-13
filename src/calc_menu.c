@@ -262,6 +262,7 @@ static void destroy_ui() {
 }
 
 static void main_window_appear(Window *window) {
+  s_current_input_selection = 0;
   update_input_selection();
   update_calc_text();
   register_input_flash_timer();
