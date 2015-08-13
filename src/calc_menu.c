@@ -267,17 +267,6 @@ static void main_window_appear(Window *window) {
   register_input_flash_timer();
 }
 
-static void main_window_load(Window *window) {
-  // does nothing
-}
-
-
-static void main_window_load(Window *window) {
-  update_input_selection();
-  update_calc_text();
-  register_input_flash_timer();
-}
-
 static void main_window_unload(Window *window) {
   destroy_ui();
 }
@@ -571,7 +560,6 @@ static void click_config_provider(void *context) {
 void show_calc_menu(void) {
   initialise_ui();
   window_set_window_handlers(s_main_window, (WindowHandlers) {
-    .load = main_window_load,
     .unload = main_window_unload,
     .appear = main_window_appear,
   });
