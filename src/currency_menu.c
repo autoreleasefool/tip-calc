@@ -26,6 +26,7 @@
 
 #include <pebble.h>
 #include "calc_menu.h"
+#include "currency_menu.h"
 #include "utils.h"
 
 #define NUM_MENU_SECTIONS 1
@@ -47,7 +48,7 @@ static void destroy_ui() {
   menu_layer_destroy(s_currency_menu);
 }
 
-static uint16_t menu-get_num_sections_callback(MenuLayer *menu_layer, void *data) {
+static uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
   return NUM_MENU_SECTIONS;
 }
 
