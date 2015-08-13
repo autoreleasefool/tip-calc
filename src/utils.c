@@ -62,3 +62,23 @@ void save_tip_values(void) {
   persist_write_int(CURRENCY_TYPE_KEY, g_currency_type);
   persist_write_int(CURRENCY_SET_KEY, g_currency_set);
 }
+
+void load_default_values(void) {
+  switch (g_currency_type) {
+    case DOLLAR:
+    case EURO:
+    case POUND:
+      g_subtotal_cents = 2000;
+  }
+}
+
+char* get_current_currency_symbol(void) {
+  switch (g_currency_type) {
+    case EURO:
+      return EURO_SYM;
+    case POUND:
+      return POUND_SYM;
+    default:
+      return DOLLAR_SYM;
+  }
+}

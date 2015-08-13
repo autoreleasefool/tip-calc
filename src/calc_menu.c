@@ -99,6 +99,7 @@ static int s_current_input_selection = 0;
 bool g_calc_is_on_stack = false;
 
 // Output values
+static char s_tip_label_text[30] = "";
 static char s_subtotal_text[30] = "";
 static char s_service_text[30] = "";
 static char s_tip_pct_text[30] = "";
@@ -159,8 +160,9 @@ static void initialise_ui(void) {
   text_layer_set_font(s_textlayer_label_tip_pct, s_res_gothic_24);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_label_tip_pct);
 
+  snprintf(s_tip_label_text sizeof(s_tip_label_text), "Tip %s", get_current_currency_symbol());
   s_textlayer_label_tip_amt = text_layer_create(GRect(1, 96 + STATUS_BAR_OFFSET, 60, 28));
-  text_layer_set_text(s_textlayer_label_tip_amt, "Tip $");
+  text_layer_set_text(s_textlayer_label_tip_amt, "Tip ");
   text_layer_set_text_alignment(s_textlayer_label_tip_amt, GTextAlignmentRight);
   text_layer_set_font(s_textlayer_label_tip_amt, s_res_gothic_24);
   layer_add_child(window_get_root_layer(s_main_window), (Layer *)s_textlayer_label_tip_amt);
@@ -351,11 +353,17 @@ static void update_input_selection(void) {
   }
 }
 
+static void convert_value_to_currency(char* output, int value) {
+  int value_dollars = value / 100;
+  int value_cents = value % 100;
+  snprintf(output, sizeof(output), "%s%d.%02d", get_current_currency_symbol(), value_dollars, value_cents);
+}
+
 static void update_calc_text(void) {
   // Formatting subtotal
   int subtotal_dollars = g_subtotal_cents / 100;
   int subtotal_cents = g_subtotal_cents % 100;
-  snprintf(s_subtotal_text, sizeof(s_subtotal_text), "$%d.%02d", subtotal_dollars, subtotal_cents);
+  convert_value_to_currency(s_subtotal_text, g_subtotal_cents);
 
   // Formatting service
   int tip_pct = 0;
@@ -388,15 +396,11 @@ static void update_calc_text(void) {
 
   // Formating tip dollar value
   int tip_amt_raw = (int) (g_subtotal_cents * (tip_pct / 100.0f));
-  int tip_amt_dollars = tip_amt_raw / 100;
-  int tip_amt_cents = tip_amt_raw % 100;
-  snprintf(s_tip_amt_text, sizeof(s_tip_amt_text), "$%d.%02d", tip_amt_dollars, tip_amt_cents);
+  convert_value_to_currency(s_tip_amt_text, tip_amt_raw);
 
   // Formatting total
   int total_raw = tip_amt_raw + g_subtotal_cents;
-  int total_dollars = total_raw / 100;
-  int total_cents = total_raw % 100;
-  snprintf(s_total_text, sizeof(s_total_text), "$%d.%02d", total_dollars, total_cents);
+  convert_value_to_currency(s_total_text, total_raw);
 
   text_layer_set_text(s_textlayer_subtotal, s_subtotal_text);
   text_layer_set_text(s_textlayer_service, s_service_text);

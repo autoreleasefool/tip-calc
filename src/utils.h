@@ -26,6 +26,14 @@
 
 #pragma once
 
+#define DOLLAR 0
+#define EURO 1
+#define POUND 2
+
+#define DOLLAR_SYM "$"
+#define EURO_SYM "€"
+#define POUND_SYM "£"
+
 extern int g_subtotal_cents;
 extern int g_service_selection;
 extern int g_tip_pct_great;
@@ -36,3 +44,5 @@ extern int g_currency_set;
 
 void load_tip_values(void);
 void save_tip_values(void);
+void load_default_values(void);
+char* get_current_currency_symbol(void);

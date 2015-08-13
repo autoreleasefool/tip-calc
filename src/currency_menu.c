@@ -29,7 +29,7 @@
 #include "utils.h"
 
 #define NUM_MENU_SECTIONS 1
-#define NUM_FIRST_MENU_ITEMS 4
+#define NUM_FIRST_MENU_ITEMS 3
 
 // Main UI
 static Window *s_main_window;
@@ -74,13 +74,11 @@ static char* get_row_text(uint16_t section, uint16_t row) {
     case 0:
       switch (row) {
         case 0:
-          return "$";
+          return DOLLAR_SYM;
         case 1:
-          return "€";
+          return EURO_SYM;
         case 2:
-          return "£"
-        case 3:
-          return "¥"
+          return POUND_SYM;
         default:
           return "";
       }
@@ -107,6 +105,7 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
   g_currency_set = 1;
   g_currency_type = cell_index->row;
   if (!g_calc_is_on_stack) {
+    load_default_values();
     show_calc_menu();
   }
   hide_currency_menu();
