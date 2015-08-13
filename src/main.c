@@ -26,6 +26,7 @@
 
 #include <pebble.h>
 #include "calc_menu.h"
+#include "currency_menu.h"
 #include "utils.h"
 
 static void init(void) {
@@ -33,7 +34,7 @@ static void init(void) {
 
   if (g_currency_set == 0) {}
     show_currency_menu();
-  } else {}
+  } else {
     load_default_values();
     show_calc_menu();
   }

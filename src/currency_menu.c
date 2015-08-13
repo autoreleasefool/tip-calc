@@ -133,20 +133,12 @@ static void main_window_unload(Window *window) {
   destroy_ui();
 }
 
-static void click_config_provider(void *context) {
-  // Register click handlers
-  window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
-  window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
-  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
-}
-
 void show_currency_menu(void) {
   initialise_ui();
   window_set_window_handlers(s_main_window, (WindowHandlers) {
     .load = main_window_load,
     .unload = main_window_unload,
   });
-  window_set_click_config_provider(s_main_window, click_config_provider);
   window_stack_push(s_main_window, true);
 }
 
