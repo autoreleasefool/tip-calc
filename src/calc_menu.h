@@ -24,5 +24,7 @@
  *
  */
 
+ extern bool g_calc_is_on_stack;
+
 void show_calc_menu(void);
 void hide_calc_menu(void);

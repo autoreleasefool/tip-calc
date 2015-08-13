@@ -26,6 +26,7 @@
 
 #include <pebble.h>
 #include "calc_menu.h"
+#include "currency_menu.h"
 #include "utils.h"
 
 // Service identifiers
@@ -95,6 +96,7 @@ static TextLayer *s_textlayer_total;
 
 // Control values
 static int s_current_input_selection = 0;
+bool g_calc_is_on_stack = false;
 
 // Output values
 static char s_subtotal_text[30] = "";
@@ -541,11 +543,16 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   update_input_selection();
 }
 
+static void select_long_click_handler(ClickRecognizerRef recognizer, void *context) {
+  show_currency_menu();
+}
+
 static void click_config_provider(void *context) {
   // Register click handlers
   window_single_repeating_click_subscribe(BUTTON_ID_UP, 30, up_click_handler);
   window_single_repeating_click_subscribe(BUTTON_ID_DOWN, 30, down_click_handler);
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
+  window_long_click_subscribe(BUTTON_ID_SELECT, 500, select_long_click_handler, NULL);
 }
 
 void show_calc_menu(void) {
@@ -555,9 +562,11 @@ void show_calc_menu(void) {
     .unload = main_window_unload,
   });
   window_set_click_config_provider(s_main_window, click_config_provider);
+  g_calc_is_on_stack = true;
   window_stack_push(s_main_window, true);
 }
 
 void hide_calc_menu(void) {
+  g_calc_is_on_stack = false;
   window_stack_remove(s_main_window, true);
 }

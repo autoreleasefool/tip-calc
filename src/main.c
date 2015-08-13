@@ -30,11 +30,16 @@
 
 static void init(void) {
   load_tip_values();
-  show_calc_menu();
+
+  if (g_currency_set == 0)
+    show_currency_menu();
+  else
+    show_calc_menu();
 }
 
 static void deinit(void) {
   save_tip_values();
+  hide_currency_menu();
   hide_calc_menu();
 }
 
