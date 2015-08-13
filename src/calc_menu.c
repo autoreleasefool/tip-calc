@@ -368,7 +368,7 @@ static void update_calc_text(void) {
   // Formatting subtotal
   int subtotal_dollars = g_subtotal_cents / 100;
   int subtotal_cents = g_subtotal_cents % 100;
-  snprintf(s_subtotal_text, sizeof(s_subtotal_text), "%s%d%s%02d", get_current_currency_symbol(), value_dollars, get_current_currency_separator(), value_cents);
+  snprintf(s_subtotal_text, sizeof(s_subtotal_text), "%s%d%s%02d", get_current_currency_symbol(), subtotal_dollars, get_current_currency_separator(), subtotal_cents);
 
   // Formatting service
   int tip_pct = 0;

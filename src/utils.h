@@ -46,3 +46,4 @@ void load_tip_values(void);
 void save_tip_values(void);
 void load_default_values(void);
 char* get_current_currency_symbol(void);
+char* get_current_currency_separator(void);
