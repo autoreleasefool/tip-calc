@@ -88,6 +88,24 @@ static char* get_row_text(uint16_t section, uint16_t row) {
   }
 }
 
+static char* get_row_subtitle(uint16_t section, uint16_t row) {
+  switch (section) {
+    case 0:
+      switch (row) {
+        case 0:
+          return "Dollar";
+        case 1:
+          return "Euro";
+        case 2:
+          return "Pound";
+        default:
+          return "";
+      }
+    default:
+      return "";
+  }
+}
+
 static int16_t menu_get_header_height_callback(MenuLayer *menu_layer, uint16_t section, void *data) {
   return MENU_CELL_BASIC_HEADER_HEIGHT;
 }
@@ -99,7 +117,7 @@ static void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, ui
 static void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
   uint16_t section = cell_index->section;
   uint16_t row = cell_index->row;
-  menu_cell_basic_draw(ctx, cell_layer, get_row_text(section, row), NULL, NULL);
+  menu_cell_basic_draw(ctx, cell_layer, get_row_text(section, row), get_row_subtitle(section, row), NULL);
 }
 
 static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
